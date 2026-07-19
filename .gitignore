@@ -1,0 +1,10 @@
+# Zebrany materiał i wyniki analizy — dane biometryczne, nie do repozytorium
+dataset/
+output/
+output_*_backup/
+
+# Środowisko
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
