@@ -1,0 +1,92 @@
+# face-identity-clusterer — configuration
+# All keys are optional; missing values fall back to built-in defaults.
+
+acquisition:                       # ETAP 1: zbieranie materiału (bez modeli)
+  dir: dataset                     # sesje trafiają do podfolderów
+  interval_seconds: 1.0            # minimalny odstęp między zapisanymi klatkami
+  max_frames: 0                    # 0 = bez limitu
+  max_duration_seconds: 0.0        # 0 = do końca źródła / ESC
+  capture_width: 1280              # 0 = domyślna rozdzielczość kamery
+  capture_height: 720              # więcej pikseli na twarz = lepsze embeddingi
+  min_blur_variance: 8.0           # WYŁĄCZNIE wykrywanie awarii kamery
+                                   # (zasłonięty obiektyw, czarna klatka).
+                                   # Liczone z całej klatki, więc zależy od
+                                   # faktury tła (133 na tle drzew vs 54 na
+                                   # gładkiej ścianie) ORAZ od rozdzielczości
+                                   # (54 przy 640x480 vs 22 przy 1280x720 —
+                                   # ta sama scena). Nie używaj tego jako progu
+                                   # jakości; od tego jest quality.* przy
+                                   # analizie, liczone z wycinka twarzy.
+  min_change_fraction: 0.02        # ile obrazu musi się zmienić względem
+                                   # ostatniej zapisanej klatki (2% = 0.02).
+                                   # PODNIEŚ przy szumiącej kamerze, OBNIŻ gdy
+                                   # ludzie są mali w kadrze. Patrz README.
+  face_gate: false                 # zapisuj tylko klatki z twarzą (wymaga InsightFace)
+  jpeg_quality: 95
+
+schedule:                          # podział doby na dwa etapy
+  capture_start: "07:00"           # zbieranie: 07:00-15:00
+  capture_end: "15:00"             # analiza: 15:00-07:00
+  camera: "0"                      # indeks kamery USB lub adres RTSP/HTTP
+  session_minutes: 60              # jedna sesja zbierania na godzinę
+  analysis_enabled: true
+  train_after_analysis: true       # po klasteryzacji dotrenuj klasyfikator
+
+detector:
+  model_pack: buffalo_l            # InsightFace: RetinaFace + ArcFace 512D (ONNX)
+  providers: [CPUExecutionProvider]  # use [CUDAExecutionProvider, CPUExecutionProvider] with a GPU
+  det_size: 640
+  det_score_threshold: 0.5
+
+quality:
+  enabled: true
+  min_face_size: 60                # px — smaller faces give unreliable embeddings
+  min_det_score: 0.6
+  min_blur_variance: 45.0          # Laplacian variance; lower = accept blurrier faces
+  max_yaw_asymmetry: 2.5           # reject strong profiles
+
+tracker:                           # used for video / live sources
+  enabled: true
+  iou_threshold: 0.3
+  max_age: 15                      # frames a track survives unmatched
+  min_hits: 3                      # frames required to confirm a track
+  max_embeddings_per_track: 30
+
+clustering:
+  algorithm: hdbscan               # hdbscan | dbscan | agglomerative
+  min_cluster_size: 4              # min faces to form an identity
+  min_samples: 2
+  dbscan_eps: 0.45                 # cosine distance (dbscan only)
+  agglomerative_threshold: 0.55
+  reattach_noise: true             # attach HDBSCAN noise to nearest centroid
+  reattach_threshold: 0.45
+
+prototypes:                        # persistent person identities ("online learning")
+  enabled: true
+  match_threshold: 0.60            # cosine similarity for re-identification
+  ema_alpha: 0.10                  # prototype update rate
+  path: output/prototypes
+
+classifier:                        # online classifier over embeddings (layer 9)
+  enabled: false                   # opt-in: train it with `python main.py train`
+  model: logreg                    # logreg | mlp
+  confidence_threshold: 0.75       # below this the classifier abstains -> prototypes
+  min_samples_per_person: 5        # persons with fewer faces are not made classes
+  min_persons: 2                   # a classifier needs at least two classes
+  path: output/classifier          # persisted model (joblib)
+
+api:                               # REST API (layer 11) + observability (12)
+  host: 127.0.0.1                  # loopback by default; 0.0.0.0 exposes the service
+  port: 8000
+  embedding_dim: 512               # ArcFace output size; /identify enforces it
+  metrics_enabled: true            # expose Prometheus metrics at /metrics
+
+video:
+  frame_stride: 3                  # process every Nth frame
+  display: false
+
+output:
+  dir: output
+  save_crops: true
+  max_crops_per_cluster: 40
+  db_path: output/faces.sqlite

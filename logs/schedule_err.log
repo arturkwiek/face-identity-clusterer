@@ -1,0 +1,11 @@
+2026-07-19 09:40:07,003 INFO face_clusterer.scheduler: Scheduler: capture 07:00-15:00 from camera 0, analysis outside that window.
+2026-07-19 09:40:20,426 INFO face_clusterer.acquire: Acquisition started: 0 -> dataset\day_20260719_094009
+[ WARN:1@401.535] global cap_msmf.cpp:477 `anonymous-namespace'::SourceReaderCB::OnReadSample videoio(MSMF): OnReadSample() is called with error status: -1072873822
+[ WARN:1@401.539] global cap_msmf.cpp:488 `anonymous-namespace'::SourceReaderCB::OnReadSample videoio(MSMF): async ReadSample() call is failed with error status: -1072873822
+[ WARN:0@401.541] global cap_msmf.cpp:1816 CvCapture_MSMF::grabFrame videoio(MSMF): can't grab frame. Error: -1072873822
+2026-07-19 09:46:51,572 INFO face_clusterer.acquire: Acquisition done: 365 frames saved from 11591 seen (interval 10798, blurry 0, unchanged 428, no-face 0) -> dataset\day_20260719_094009
+2026-07-19 09:46:51,622 INFO face_clusterer.scheduler: Capture session done: 365 frames saved.
+[ WARN:0@0.011] global cap_ffmpeg_impl.hpp:1246 open VIDEOIO/FFMPEG: OpenCV should be configured with libavdevice to open a camera device
+[ERROR:0@403.302] global obsensor_uvc_stream_channel.cpp:163 cv::obsensor::getStreamChannelGroup Camera index out of range
+2026-07-19 09:46:53,247 ERROR face_clusterer.scheduler: Capture failed (Cannot open capture source: 0) — retrying shortly.
+2026-07-19 09:48:51,759 INFO face_clusterer.acquire: Acquisition started: 0 -> dataset\day_20260719_094846
